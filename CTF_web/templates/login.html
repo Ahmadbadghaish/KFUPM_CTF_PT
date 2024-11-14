@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center">Login</h1>
+        
+        <form action="{{ url_for('login') }}" method="POST" class="bg-gray-800 p-6 rounded shadow-md">
+            <label for="username" class="block text-sm font-medium">Username</label>
+            <input type="text" name="username" class="mt-2 mb-4 p-3 bg-gray-700 rounded w-full">
+
+            <label for="password" class="block text-sm font-medium">Password</label>
+            <input type="password" name="password" class="mt-2 mb-4 p-3 bg-gray-700 rounded w-full">
+
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">Login</button>
+        </form>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mt-4 text-center">
+                {% for category, message in messages %}
+                    <!-- Vulnerable to SSTI -->
+                    <p class="text-red-500">{{ message | safe }}</p>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if flag %}
+            <div class="text-center mt-4">
+                <p class="text-lg">FLAG: {{ flag }}</p>
+            </div>
+        {% endif %}
+
+        <!-- Comment Section for XSS -->
+        <div class="mt-8 bg-gray-800 p-4 rounded shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Comment Section</h2>
+            <form action="{{ url_for('submit_comment') }}" method="POST">
+                <textarea name="comment" class="w-full p-2 rounded bg-gray-700 text-white" placeholder="Leave a comment..."></textarea>
+                <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Submit Comment</button>
+            </form>
+
+            <!-- Display submitted comments with XSS vulnerability -->
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold">Comments:</h3>
+                <ul class="mt-4">
+                    {% for comment in comments %}
+                        <!-- Vulnerable to XSS -->
+                        <li class="bg-gray-700 p-2 rounded mb-2">{{ comment | safe }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
