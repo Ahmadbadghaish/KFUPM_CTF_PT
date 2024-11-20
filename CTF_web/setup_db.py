@@ -27,7 +27,7 @@ def create_database():
     cursor.execute('''
     INSERT OR IGNORE INTO users (username, password)
     VALUES (?, ?)
-    ''', ('admin', 'password123'))  # Replace with hashed password in production.
+    ''', ('Sean', 'Sean$Sean$Sean'))  # Replace with hashed password in production.
 
     # Insert sample files data
     files = [

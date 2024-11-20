@@ -10,7 +10,9 @@
 <body class="bg-gray-900 text-white">
     <div class="container mx-auto p-6">
         <h1 class="text-3xl font-bold mb-6 text-center">Login</h1>
-        
+        <h3 class="text-center">CC{enum_is_key}</h3>
+        <h2 class="text-2xl font-bold mb-3 text-center">only admin can login btw lol</h2>
+
         <form action="{{ url_for('login') }}" method="POST" class="bg-gray-800 p-6 rounded shadow-md">
             <label for="username" class="block text-sm font-medium">Username</label>
             <input type="text" name="username" class="mt-2 mb-4 p-3 bg-gray-700 rounded w-full">
@@ -40,7 +42,7 @@
 
         <!-- Comment Section for XSS -->
         <div class="mt-8 bg-gray-800 p-4 rounded shadow-md">
-            <h2 class="text-xl font-semibold mb-4">Comment Section</h2>
+            <h2 class="text-xl font-semibold mb-4">Sumbit issues regarding our login page</h2>
             <form action="{{ url_for('submit_comment') }}" method="POST">
                 <textarea name="comment" class="w-full p-2 rounded bg-gray-700 text-white" placeholder="Leave a comment..."></textarea>
                 <button type="submit" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mt-2">Submit Comment</button>

@@ -52,6 +52,12 @@ def index():
 @app.route('/robots.txt')
 def robots_txt():
     return send_from_directory(app.static_folder, 'robots.txt')
+
+# Route for robots.txt
+@app.route('/employees.txt')
+def employees_txt():
+    return send_from_directory(app.static_folder, 'employees.txt')
+    
     
 # Function to check if input contains `=`
 def contains_invalid_characters(input_string):
@@ -67,7 +73,7 @@ def login():
         # Reject input if it contains `=`
         if contains_invalid_characters(username) or contains_invalid_characters(password):
             flash("Invalid characters in input", "danger")
-            return render_template('login.html')
+            return render_template('login.html', comments=comments)
         
         conn = get_db_connection()
 
@@ -93,7 +99,8 @@ def login():
 
         conn.close()
 
-    return render_template('login.html')
+    # Always pass comments to the template
+    return render_template('login.html', comments=comments)
 
 
 
@@ -103,7 +110,8 @@ def submit_comment():
     comment = request.form['comment']
     comments.append(comment)  # Add comment to the in-memory list
     flash("Comment submitted!", "success")
-    return redirect(url_for('login'))
+    return redirect(url_for('login'))  # Redirect back to /login to display comments
+
 
 # Admin page with Command Injection vulnerability
 @app.route('/admin', methods=['GET', 'POST'])
@@ -111,7 +119,7 @@ def admin():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    flag = "FLAG{admin_page_accessed}"
+    flag = "CC{Wow_SQLi???}"
     command_output = ""
     if request.method == 'POST':
         cmd = request.form['command']
@@ -162,7 +170,7 @@ def serve_xss_file(filename):
 # IDOR Vulnerability - List files and access files by ID
 @app.route('/files/uploads/')
 def idor_file_list():
-    flag = "FLAG{idor_list_accessed}"
+    flag = "CC{sometimes_you_have_to_look_deeper}"
     return render_template('uploads.html', flag=flag, files=IDOR_FILES)
 
 @app.route('/files/uploads/<int:file_number>')
