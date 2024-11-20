@@ -17,4 +17,4 @@ RUN python setup_db.py
 EXPOSE 5000
 
 # Command to run the Flask app
-CMD ["flask", "run", "--host=0.0.0.0", "--port=80"]
+CMD ["flask", "run", "--host=0.0.0.0", "--port=5000"]
