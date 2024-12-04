@@ -24,10 +24,14 @@ def create_database():
     ''')
 
     # Insert sample user data
-    cursor.execute('''
+    cursor.executemany('''
     INSERT OR IGNORE INTO users (username, password)
     VALUES (?, ?)
-    ''', ('Sean', 'Sean$Sean$Sean'))  # Replace with hashed password in production.
+    ''', [
+        ('Sean', 'admin123'),
+        ('ahmad', 'admin123'),
+        ('osama', 'admin123')
+    ])  # Replace with hashed password in production.
 
     # Insert sample files data
     files = [
