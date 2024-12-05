@@ -5,7 +5,7 @@ FROM python:3.12-slim
 ENV PYTHONUNBUFFERED=1
 ENV FLASK_APP=app.py
 ENV FLASK_RUN_HOST=0.0.0.0
-ENV FLASK_RUN_PORT=5000
+ENV FLASK_RUN_PORT=81
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -23,7 +23,7 @@ COPY . .
 RUN python setup_db.py
 
 # Expose the port Flask runs on
-EXPOSE 5000
+EXPOSE 81
 
 # Command to run the Flask app
 CMD ["flask", "run"]
