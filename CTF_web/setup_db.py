@@ -13,7 +13,7 @@ def create_database():
     )
     ''')
 
-    # Create files table
+    # Create files table for memes
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS files (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,17 +28,33 @@ def create_database():
     INSERT OR IGNORE INTO users (username, password)
     VALUES (?, ?)
     ''', [
-        ('Sean', 'admin123'),
-        ('ahmad', 'admin123'),
-        ('osama', 'admin123')
+        ('Kevin', '123123admin123')
     ])  # Replace with hashed password in production.
 
-    # Insert sample files data
-    files = [
-        (1, 'report1.pdf', 'First report file'),
-        (2, 'report2.pdf', 'Second report file')
+
+
+    # Clear any existing data
+    cursor.execute('DELETE FROM files')
+
+    # Insert memes with IDs varying from 0 to 20
+    memes = [
+        (0, 1, 'meme7.jpg', 'Funny meme 1'),
+        (3, 2, 'meme8.jpg', 'Funny meme 2'),
+        (5, 3, 'meme3.jpg', 'Funny meme 3'),
+        (8, 4, 'meme4.jpg', 'Funny meme 4'),
+        (12, 5, 'meme5.jpg', 'Funny meme 5'),
+        (15, 6, 'meme6.jpg', 'Funny meme 6'),
+        (18, 7, 'meme1.jpg', 'Funny meme 7'),
+        (20, 8, 'meme2.jpg', 'Funny meme 8'),
+        (30, 9, 'meme9.jpg', 'flag')
+
     ]
-    cursor.executemany('INSERT INTO files (file_number, filename, description) VALUES (?, ?, ?)', files)
+
+    # Include the `id` column in the query
+    cursor.executemany(
+        'INSERT OR IGNORE INTO files (id, file_number, filename, description) VALUES (?, ?, ?, ?)', 
+        memes
+    )
 
     conn.commit()
     conn.close()

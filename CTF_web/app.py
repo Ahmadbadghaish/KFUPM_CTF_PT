@@ -5,10 +5,13 @@ import os
 import subprocess
 
 app = Flask(__name__)
+app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 
+# In-memory dictionary to store comments for each session
+comments_by_session = {}
+
 DATABASE = 'ctf_lab.db'
-comments = []  # Temporary storage for comments
 
 # Directory settings for each vulnerability
 UPLOAD_DIRECTORIES = {
@@ -54,9 +57,9 @@ def robots_txt():
     return send_from_directory(app.static_folder, 'robots.txt')
 
 # Route for robots.txt
-@app.route('/employees.txt')
+@app.route('/names.txt')
 def employees_txt():
-    return send_from_directory(app.static_folder, 'employees.txt')
+    return send_from_directory(app.static_folder, 'names.txt')
     
     
 # Function to check if input contains `=`
@@ -100,107 +103,78 @@ def login():
         conn.close()
 
     # Always pass comments to the template
-    return render_template('login.html', comments=comments)
-
+    # Pass session-specific comments to the template
+    session_id = session.get('session_id', None)
+    user_comments = comments_by_session.get(session_id, [])
+    return render_template('login.html', comments=user_comments)
 
 
 # Comment submission (XSS vulnerability)
 @app.route('/submit_comment', methods=['POST'])
 def submit_comment():
+    # Ensure each user has a unique session ID
+    if 'session_id' not in session:
+        session['session_id'] = os.urandom(16).hex()
+
+    session_id = session['session_id']
     comment = request.form['comment']
-    comments.append(comment)  # Add comment to the in-memory list
+
+    # Initialize comment list for this session if not already present
+    if session_id not in comments_by_session:
+        comments_by_session[session_id] = []
+
+    # Add the comment to the session-specific list
+    comments_by_session[session_id].append(comment)
+
     flash("Comment submitted!", "success")
-    return redirect(url_for('login'))  # Redirect back to /login to display comments
-
-
-# Admin page with Command Injection vulnerability
+    return redirect(url_for('login'))
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if 'username' not in session:
         return redirect(url_for('login'))
 
-    flag = "CC{Wow_SQLi???}"
+    flag = "CC6{SQLi_master}"
     command_output = ""
+
     if request.method == 'POST':
-        cmd = request.form['command']
+        hostname = request.form.get('hostname', '').strip()
+
+        # Only allow 'ping' with the hostname to disguise the vulnerability
+        cmd = f"ping -c 4 {hostname}"
+
         try:
+            # Execute the command and capture the output
             command_output = subprocess.check_output(cmd, shell=True, stderr=subprocess.STDOUT, text=True)
-            flash("Command executed successfully", "success")
+            flash("Connection test executed successfully", "success")
         except subprocess.CalledProcessError as e:
             command_output = e.output
-            flash("Command execution failed", "danger")
+            flash("Connection test failed", "danger")
+    
     return render_template('admin.html', flag=flag, output=command_output)
 
-# Route to serve files specific to SQL Injection
-@app.route('/files/uploads/sqli/<filename>')
-def serve_sqli_file(filename):
-    path = secure_filepath(UPLOAD_DIRECTORIES["sqli"], filename)
-    try:
-        return send_from_directory(UPLOAD_DIRECTORIES["sqli"], filename)
-    except FileNotFoundError:
-        abort(404)
+# Route to display memes with links
+@app.route('/files/memes/')
+def meme_list():
+    conn = get_db_connection()
+    memes = conn.execute('SELECT * FROM files ORDER BY id ASC LIMIT 2').fetchall()
+    conn.close()
 
-# Route to serve files specific to Command Injection
-@app.route('/files/uploads/command_injection/<filename>')
-def serve_command_injection_file(filename):
-    path = secure_filepath(UPLOAD_DIRECTORIES["command_injection"], filename)
-    try:
-        return send_from_directory(UPLOAD_DIRECTORIES["command_injection"], filename)
-    except FileNotFoundError:
-        abort(404)
+    return render_template('memes.html', memes=memes)
 
-# Route to serve files specific to SSTI
-@app.route('/files/uploads/ssti/<filename>')
-def serve_ssti_file(filename):
-    path = secure_filepath(UPLOAD_DIRECTORIES["ssti"], filename)
-    try:
-        return send_from_directory(UPLOAD_DIRECTORIES["ssti"], filename)
-    except FileNotFoundError:
-        abort(404)
 
-# Route to serve files specific to XSS
-@app.route('/files/uploads/xss/<filename>')
-def serve_xss_file(filename):
-    path = secure_filepath(UPLOAD_DIRECTORIES["xss"], filename)
-    try:
-        return send_from_directory(UPLOAD_DIRECTORIES["xss"], filename)
-    except FileNotFoundError:
-        abort(404)
 
-# IDOR Vulnerability - List files and access files by ID
-@app.route('/files/uploads/')
-def idor_file_list():
-    flag = "CC{sometimes_you_have_to_look_deeper}"
-    return render_template('uploads.html', flag=flag, files=IDOR_FILES)
+# Route to serve individual meme by ID
+@app.route('/files/memes/<int:meme_id>')
+def serve_meme(meme_id):
+    conn = get_db_connection()
+    meme = conn.execute('SELECT * FROM files WHERE id = ?', (meme_id,)).fetchone()
+    conn.close()
 
-@app.route('/files/uploads/<int:file_number>')
-def serve_upload(file_number):
-    # Locate the file entry by ID
-    file_entry = next((f for f in IDOR_FILES if f["id"] == file_number), None)
-    if file_entry:
-        path = secure_filepath(UPLOAD_DIRECTORIES["uploads"], file_entry["filename"])
-        try:
-            return send_from_directory(UPLOAD_DIRECTORIES["uploads"], file_entry["filename"])
-        except FileNotFoundError:
-            abort(404)
+    if meme:
+        return render_template('meme_detail.html', meme=meme)
     else:
         abort(404)
 
-# General file upload route
-@app.route('/upload', methods=['POST'])
-def file_upload():
-    if 'file' not in request.files:
-        flash("No file selected", "danger")
-        return redirect(url_for('uploads'))
-    
-    file = request.files['file']
-    if file.filename != '':
-        file_path = secure_filepath(UPLOAD_DIRECTORIES["uploads"], file.filename)  # Example usage of command_injection directory for uploads
-        file.save(file_path)
-        flash("File uploaded successfully", "success")
-    else:
-        flash("Invalid file", "danger")
-    return redirect(url_for('uploads'))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
