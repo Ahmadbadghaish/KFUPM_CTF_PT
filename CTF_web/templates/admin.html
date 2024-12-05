@@ -16,7 +16,7 @@
             <h2 class="text-xl font-semibold mb-4">Connection Test</h2>
             <form action="{{ url_for('admin') }}" method="POST">
                 <label for="hostname" class="block text-sm font-medium">Enter hostname or IP address:</label>
-                <input type="text" name="hostname" class="mt-2 mb-4 p-3 bg-gray-700 rounded w-full" placeholder="e.g., 8.8.8.8">
+                <input type="text" name="hostname" class="mt-2 mb-4 p-3 bg-gray-700 rounded w-full" placeholder="e.g., google.com">
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full">Test Connection</button>
             </form>
             {% if output %}
